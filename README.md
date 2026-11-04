@@ -149,7 +149,7 @@ Values are case-sensitive: `Premium`, not `premium`.
 2. **Measurement → Metrics → Create metric**: event kind **Custom**, event key `hero-cta-click`, metric definition **Occurrence (Percent)**, analysis unit **user**, higher is better. Name: `Hero CTA click`. **Create**.
 3. **Experimentation → Create experiment**: name `New hero CTA`; flag `new-landing-hero`; targeting rule **Default rule**; randomize by `user`; 50/50 split with `false` as control; metric `Hero CTA click`; statistical approach **Bayesian**. **Save**, then **Start**.
 
-> Starting the experiment replaces the default rule with a 50/50 rollout, so `alex` and `guest-4821` may be bucketed into the new hero. Assignment is deterministic per user key. **Stop** the experiment to restore the plain default rule when you want to show Part 2 cleanly; start a new iteration before showing experiment results.
+> Starting the experiment replaces the default rule with a 50/50 rollout, so `alex` and `guest-4821` may be bucketed into the new hero. Assignment is deterministic per user key. **Stop** the experiment to restore the plain default rule.
 
 ---
 
