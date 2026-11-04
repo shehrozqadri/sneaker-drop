@@ -1,4 +1,10 @@
 <!doctype html>
+<!--
+  Sneaker Drop storefront.
+  Layout: banner (SDK offline warning) -> ticker -> nav (shopper dropdown) -> hero
+  (Part 2 flag) -> product grid (Part 1 flag) -> trust strip -> footer -> floating
+  LaunchDarkly panel. All flag logic is in the <script> at the bottom.
+-->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -166,6 +172,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       Search sneakers, brands, drops…
     </div>
+    <!-- Shopper dropdown. The selected key becomes the LaunchDarkly context for every evaluation. -->
     <label class="persona">
       <span class="avatar" id="avatar">G</span>
       <select id="user" aria-label="Shopping as" data-personas='{{ personas | tojson }}'>
@@ -213,6 +220,11 @@
 <div id="toast"></div>
 
 <script>
+/* =========================================================================
+   1. DATA
+   PERSONAS is injected by Flask (see app.py) via the data-personas attribute.
+   PRODUCTS is static catalogue data - it has nothing to do with flags.
+   ========================================================================= */
 const PERSONAS = JSON.parse(document.getElementById("user").dataset.personas);
 const PRODUCTS = [
   { n:"Volt 95",       cat:"Lifestyle", p:180, was:null, bg:["#ff4d2e","#ffb199"], badge:"New drop",   hot:true,  stars:"4.9", reviews:212 },
@@ -222,6 +234,11 @@ const PRODUCTS = [
   { n:"Ember Low",     cat:"Lifestyle", p:125, was:150,  bg:["#f59e0b","#fde68a"], badge:"-17%",       hot:false, stars:"4.5", reviews:640 },
   { n:"Aero Knit",     cat:"Running",   p:155, was:null, bg:["#8b5cf6","#ddd6fe"], badge:"New",        hot:false, stars:"4.7", reviews:318 },
 ];
+
+/* =========================================================================
+   2. STATE + SMALL HELPERS
+   `flags` holds the latest values from /api/flags for the selected shopper.
+   ========================================================================= */
 const $ = id => document.getElementById(id);
 let flags = {}, cart = 0, category = "All";
 
@@ -232,6 +249,11 @@ function addToCart(n) { cart++; $("cart-n").textContent = cart; toast(`Added ${n
 function buyNow(n) { toast(`Order placed: ${n} · one-click checkout`); }
 function fav(btn) { btn.classList.toggle("on"); }
 
+/* =========================================================================
+   3. HERO  (Part 2: flag `new-landing-hero`)
+   true  -> new orange "drop is live" hero with the tracked CTA
+   false -> original "Spring collection" hero
+   ========================================================================= */
 function renderHero() {
   const hero = $("hero");
   if (flags["new-landing-hero"]) {
@@ -245,6 +267,8 @@ function renderHero() {
         <div class="countdown"><div><b>01</b><small>days</small></div><div><b>14</b><small>hrs</small></div><div><b>32</b><small>min</small></div></div>
       </div>
       <div class="art"><div class="shoe-art"></div></div>`;
+    // Extra credit: clicking the CTA posts to /api/track, which calls
+    // ld.track("hero-cta-click") on the server. That event feeds the experiment metric.
     $("cta").onclick = () => {
       fetch("/api/track", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ user:$("user").value }) });
       toast("Event sent to LaunchDarkly: hero-cta-click");
@@ -263,6 +287,10 @@ function renderHero() {
   }
 }
 
+/* =========================================================================
+   4. PRODUCT GRID  (Part 1: flag `one-click-checkout`)
+   When the flag is true, every card gets an extra "Buy now" button.
+   ========================================================================= */
 function renderGrid() {
   const oneClick = flags["one-click-checkout"];
   $("grid").innerHTML = PRODUCTS.filter(x => category === "All" || x.cat === category).map(x => `
@@ -286,6 +314,11 @@ function renderGrid() {
     </article>`).join("");
 }
 
+/* =========================================================================
+   5. LIVE FLAG PANEL  (demo instrumentation, bottom-right)
+   Shows both flag values and the exact context attributes being sent,
+   so the audience can see why a shopper got a given variation.
+   ========================================================================= */
 function renderPanel() {
   const key = $("user").value, p = PERSONAS[key];
   $("f-hero").innerHTML = pill(flags["new-landing-hero"]);
@@ -296,6 +329,11 @@ function renderPanel() {
 
 function render() { renderHero(); renderGrid(); renderPanel(); }
 
+/* =========================================================================
+   6. FLAG EVALUATION + EVENT WIRING
+   refresh() asks the server to evaluate both flags for the selected shopper.
+   The server does the evaluation - the SDK key never reaches the browser.
+   ========================================================================= */
 async function refresh() { flags = await (await fetch("/api/flags?user=" + $("user").value)).json(); render(); }
 
 $("user").onchange = () => { log(`Switched shopper → <b>${$("user").value}</b>`); refresh(); };
@@ -303,9 +341,16 @@ document.querySelectorAll(".chips button").forEach(b => b.onclick = () => {
   document.querySelector(".chips .active").classList.remove("active"); b.classList.add("active"); category = b.textContent; renderGrid();
 });
 
-// Instant updates: the server's LaunchDarkly change listener pushes to this stream. No page reload.
+/* =========================================================================
+   7. INSTANT UPDATES  (Part 1: no reload, no redeploy)
+   The server's LaunchDarkly change listener pushes a message over this
+   Server-Sent Events stream the moment any flag changes. We re-evaluate.
+   ========================================================================= */
 new EventSource("/stream").onmessage = e => { log(`Flag changed: <b>${JSON.parse(e.data).flag}</b> — re-evaluating`); refresh(); };
 
+/* =========================================================================
+   8. STARTUP
+   ========================================================================= */
 fetch("/health").then(r => r.json()).then(h => {
   if (!h.ld_initialized) { $("banner").classList.add("show"); $("ld").classList.add("offline"); $("ld-hint").textContent = "SDK offline"; }
 });
