@@ -18,7 +18,7 @@ A small sneaker storefront that shows how LaunchDarkly separates **deploying cod
 2. [Run the app](#2-run-the-app)
 3. [Create the flags in LaunchDarkly](#3-create-the-flags-in-launchdarkly)
 4. [Verify it works](#4-verify-it-works)
-5. [Demo script](#5-demo-script)
+5. [Walking through the demo](#5-walking-through-the-demo)
 6. [How it works](#6-how-it-works)
 7. [Project layout and endpoints](#7-project-layout-and-endpoints)
 8. [Troubleshooting](#8-troubleshooting)
@@ -178,9 +178,9 @@ The context attributes the app sends, for reference (`kind: user`):
 
 ---
 
-## 5. Demo script
+## 5. Walking through the demo
 
-About 10 minutes. Keep the app and the LaunchDarkly tab side by side. Nothing below changes code.
+The order I use when presenting, roughly 10 minutes. Keep the app and the LaunchDarkly tab side by side. Nothing below changes code.
 
 **Problem.** "Engineering is asked to ship faster, but a bad release costs sales. We want releases that are instant, reversible and targeted."
 
