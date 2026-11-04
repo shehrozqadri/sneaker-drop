@@ -180,8 +180,6 @@ The context attributes the app sends, for reference (`kind: user`):
 
 ## 5. Walking through the demo
 
-The order I use when presenting, roughly 10 minutes. Keep the app and the LaunchDarkly tab side by side. Nothing below changes code.
-
 **Problem.** "Engineering is asked to ship faster, but a bad release costs sales. We want releases that are instant, reversible and targeted."
 
 **Part 1 — Release.** `one-click-checkout` is Off; the store shows only *Add to cart*. Toggle it **On → Save**. A **Buy now** button pops onto every card, no reload — the panel logs the change event. Toggle **Off → Save**: gone. That's the rollback.
