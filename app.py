@@ -63,6 +63,20 @@ FLAGS = [FLAG_CHECKOUT, FLAG_HERO]
 # Used as the metric for the experiment (extra credit).
 EVENT_HERO_CTA = "hero-cta-click"
 
+# Everything the reviewer needs to set up in LaunchDarkly (same environment
+# as the SDK key). Step-by-step instructions are in README section 3.
+#
+#   Flag     one-click-checkout   Boolean, targeting Off, default false
+#   Trigger  on one-click-checkout: generic trigger, action "turn flag off"
+#   Flag     new-landing-hero     Boolean, targeting On:
+#              individual target  user key "qa-sam"            -> true
+#              rule               tier is one of "Premium"     -> true
+#              rule               beta_tester is one of true   -> true
+#              default rule                                    -> false
+#   Metric   "Hero CTA click"     custom event "hero-cta-click", occurrence
+#   Experiment (optional)         new-landing-hero, default rule, 50/50,
+#                                 metric "Hero CTA click"
+
 
 # ===========================================================================
 # 2. DEMO SHOPPERS
